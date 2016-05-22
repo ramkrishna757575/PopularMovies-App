@@ -13,12 +13,12 @@ android {
     }
     buildTypes {
         debug {
-            buildConfigField("String", "MOVIE_DB_API_KEY", "\"a16bef920402efc8acf15a0ad6c4c43d\"")
+            buildConfigField("String", "MOVIE_DB_API_KEY", "\"YOUR API KEY HERE\"")
         }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            buildConfigField("String", "MOVIE_DB_API_KEY", "\"a16bef920402efc8acf15a0ad6c4c43d\"")
+            buildConfigField("String", "MOVIE_DB_API_KEY", "\"YOUR API KEY HERE\"")
         }
     }
 }
