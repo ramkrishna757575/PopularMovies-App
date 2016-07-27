@@ -16,7 +16,7 @@ import java.util.ArrayList;
 public class GetMoviesFromApi extends AsyncTask {
 
     private Context context;
-    private GetMoviesFromApiListener listener;
+    private GetMoviesFromApiListener delegate;
     //Reference to hold the NetworkDataManager Object
     NetworkDataManager networkDataManager;
     String rawJSON, url;
@@ -26,7 +26,7 @@ public class GetMoviesFromApi extends AsyncTask {
     //Constructor that initializes the URL to be used to fetch the data
     GetMoviesFromApi(Context context, GetMoviesFromApiListener listener) {
         this.context = context;
-        this.listener = listener;
+        delegate = listener;
         //Get the SharedPreference in the current application
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         String sortOrderPrefs = sharedPrefs.getString(context.getString(R.string.pref_sort_order_key), context.getString(R.string.settings_order_by_default_val));
@@ -43,7 +43,7 @@ public class GetMoviesFromApi extends AsyncTask {
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
-        listener.getIsLoading(true); //Set to true to indicate that data loading is going to start
+        delegate.getIsLoading(true); //Set to true to indicate that data loading is going to start
         networkDataManager = new NetworkDataManager(context, url);
     }
 
@@ -67,16 +67,16 @@ public class GetMoviesFromApi extends AsyncTask {
                 movieObjects = movieJsonParser.parseMovieJson(rawJSON);
 
                 //set the Max Page Limit if not set already
-                if (listener.setMaxPagesCount() < 1) {
-                    listener.getMaxPagesCount(movieJsonParser.getPageLimit(rawJSON));
+                if (delegate.setMaxPagesCount() < 1) {
+                    delegate.getMaxPagesCount(movieJsonParser.getPageLimit(rawJSON));
                 }
-                // notify the listener's adapter for the data change
-                listener.notifyForDataChange(movieObjects);
+                // notify the delegate's adapter for the data change
+                delegate.notifyForDataChange(movieObjects);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
-        listener.getIsLoading(false); //Set to false to indicate that data loading is finished
+        delegate.getIsLoading(false); //Set to false to indicate that data loading is finished
     }
 
     public interface GetMoviesFromApiListener {

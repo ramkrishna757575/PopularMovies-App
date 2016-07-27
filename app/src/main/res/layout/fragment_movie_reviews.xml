@@ -1,0 +1,38 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.ramkrishna.android.popularmovies.MovieReviewsFragment">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#009688"
+            android:fontFamily="sans-serif-medium"
+            android:padding="16dp"
+            android:textColor="@android:color/white"
+            android:textSize="24sp"
+            android:text="Reviews: " />
+
+        <ListView
+            android:id="@+id/reviews_list_view"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:scrollbars="vertical"
+            android:layout_weight="1"
+            android:layout_marginBottom="4dp"/>
+
+        <Button
+            android:id="@+id/more_reviews_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/moreReviewsButtonText"/>
+
+    </LinearLayout>
+
+</FrameLayout>

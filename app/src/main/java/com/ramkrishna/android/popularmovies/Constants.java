@@ -7,6 +7,7 @@ package com.ramkrishna.android.popularmovies;
  */
 public class Constants {
     public static final String JSON_PARSER_TAG_RESULTS_ARRAY = "results";
+    public static final String JSON_PARSER_TAG_MOVIE_ID = "id";
     public static final String JSON_PARSER_TAG_MOVIE_POSTER_PATH = "poster_path";
     public static final String JSON_PARSER_TAG_MOVIE_IS_ADULT = "adult";
     public static final String JSON_PARSER_TAG_MOVIE_OVERVIEW = "overview";
@@ -26,6 +27,17 @@ public class Constants {
     public static final String URI_PARAM_CURRENT_PAGE = "page";
     public static final String URI_PARAM_SORT_ORDER_RATING = "top_rated";
     public static final String URI_PARAM_SORT_ORDER_POPULARITY = "popular";
+    public static final String URI_PARAM_MOVIE_VIDEOS = "videos";
+    public static final String URI_PARAM_MOVIE_REVIEWS = "reviews";
+
+    public static final String JSON_PARSER_TAG_TRAILER_NAME = "name";
+    public static final String JSON_PARSER_TAG_TRAILER_KEY = "key";
+    public static final String JSON_PARSER_TAG_REVIEW_AUTHOR = "author";
+    public static final String JSON_PARSER_TAG_REVIEW_CONTENT = "content";
+    public static final String JSON_PARSER_TAG_VIDEO_TYPE = "type";
+    public static final String JSON_PARSER_TAG_VIDEO_TYPE_TRAILER = "Trailer";
+    public static final String URI_BASE_YOU_TUBE_URI = "https://www.youtube.com/watch";
+    public static final String URI_PARAM_YOU_TUBE_VIDEO = "v";
 
     public static final int START_PAGE_NUMBER = 1;
 }

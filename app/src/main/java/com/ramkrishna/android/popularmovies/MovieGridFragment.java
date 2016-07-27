@@ -4,6 +4,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,9 +26,6 @@ public class MovieGridFragment extends Fragment implements GetMoviesFromApi.GetM
     private int currentPage = Constants.START_PAGE_NUMBER; //The Current Page that will be used to fetch data from the API
     private int maxPages = -1; //The Max pages that the API has
     private boolean isLoading = true; //Indicates if data is loading from the API
-    private boolean isPrefsChanged = false; //Indicates if user changed the SortOrder Preference
-    SharedPreferences sharedPrefs; //Reference to hold the SharedPreferences
-    SharedPreferences.OnSharedPreferenceChangeListener listener; //Reference to a listener that monitors change in SharedPreferences
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -38,26 +36,6 @@ public class MovieGridFragment extends Fragment implements GetMoviesFromApi.GetM
             view = inflater.inflate(R.layout.fragment_movie_grid, container, false);
             //Get the GridView from the Layout
             gridView = (GridView) view.findViewById(R.id.movie_grid_view);
-
-            //Get the SharedPreference in the current application
-            sharedPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-            //Set a listener to listent to changes in SharedPreferences
-            listener = new SharedPreferences.OnSharedPreferenceChangeListener() {
-                @Override
-                public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-                    //If SharedPrefs changed then, empty the movie list, reset currentPage and the maxPages
-                    movieObjects.clear();
-                    currentPage = 1;
-                    maxPages = -1;
-                    //SharedPrefs changed
-                    isPrefsChanged = true;
-                    //Fetch New data form the API for the changed Preference
-                    GetMoviesFromApi getMoviesFromAPI = new GetMoviesFromApi(getContext(), MovieGridFragment.this);
-                    getMoviesFromAPI.execute();
-                }
-            };
-            //Register the listener for SharedPrefs change behaviour
-            sharedPrefs.registerOnSharedPreferenceChangeListener(listener);
 
             //Fetch the movies data from API for the first time, when Application is launched
             GetMoviesFromApi getMoviesFromAPI = new GetMoviesFromApi(getContext(), this);
@@ -113,10 +91,9 @@ public class MovieGridFragment extends Fragment implements GetMoviesFromApi.GetM
     public void notifyForDataChange(ArrayList<MovieObject> newMoviesList) {
         //Reset the adapter to a new one if it isn't already created or if Preference has changed
         movieObjects.addAll(newMoviesList);
-        if (movieAdapter == null || isPrefsChanged) {
+        if (movieAdapter == null) {
             movieAdapter = new MovieAdapter(getContext(), movieObjects);
             gridView.setAdapter(movieAdapter);
-            isPrefsChanged = false; //Now task related to changed Prefs done. So reset isPrefsChanged back to false
         } else {
             //Notify the adapter that the data has changed, so that the GridView can be updated accordingly
             movieAdapter.notifyDataSetChanged();
