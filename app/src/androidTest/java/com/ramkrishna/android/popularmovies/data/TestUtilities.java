@@ -15,11 +15,6 @@ import com.ramkrishna.android.popularmovies.utils.PollingCheck;
 import java.util.Map;
 import java.util.Set;
 
-/*
-    Students: These are functions and some test data to make it easier to test your database and
-    Content Provider.  Note that you'll want your WeatherContract class to exactly match the one
-    in our solution to use these as-given.
- */
 public class TestUtilities extends AndroidTestCase {
 
     static void validateCursor(String error, Cursor valueCursor, ContentValues expectedValues) {
@@ -60,10 +55,6 @@ public class TestUtilities extends AndroidTestCase {
         }
     }
 
-    /*
-        Students: You can uncomment this helper function once you have finished creating the
-        LocationEntry part of the WeatherContract.
-     */
     static ContentValues createMovieRecord() {
         // Create a new map of values, where column names are the keys
         ContentValues testValues = new ContentValues();
@@ -79,32 +70,68 @@ public class TestUtilities extends AndroidTestCase {
         return testValues;
     }
 
-    /*
-        Students: You can uncomment this function once you have finished creating the
-        LocationEntry part of the WeatherContract as well as the WeatherDbHelper.
-     */
     static long insertMovieRecord(Context context) {
         // insert our test records into the database
         MovieDbHelper dbHelper = new MovieDbHelper(context);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         ContentValues testValues = TestUtilities.createMovieRecord();
 
-        long locationRowId;
-        locationRowId = db.insert(MovieContract.MovieEntry.TABLE_NAME, null, testValues);
+        long movieRowId;
+        movieRowId = db.insert(MovieContract.MovieEntry.TABLE_NAME, null, testValues);
         // Verify we got a row back.
-        assertTrue("Error: Failure to insert North Pole Location Values", locationRowId != -1);
+        assertTrue("Error: Failure to insert movie record in movies table", movieRowId != -1);
 
-        return locationRowId;
+        return movieRowId;
     }
 
-    /*
-        Students: The functions we provide inside of TestProvider use this utility class to test
-        the ContentObserver callbacks using the PollingCheck class that we grabbed from the Android
-        CTS tests.
+    static ContentValues createReviewRecord() {
+        // Create a new map of values, where column names are the keys
+        ContentValues testValues = new ContentValues();
+        testValues.put(MovieContract.ReviewEntry.COLUMN_MOVIE_ID, 209112);
+        testValues.put(MovieContract.ReviewEntry.COLUMN_AUTHOR, "Ramkrishna Verma");
+        testValues.put(MovieContract.ReviewEntry.COLUMN_CONTENT, "Fearing the actions of a god-like Super Hero left unchecked, Gotham City’s own formidable, forceful vigilante takes on Metropolis’s most revered, modern-day savior, while the world wrestles with what sort of hero it really needs. And with Batman and Superman at war with one another, a new threat quickly arises, putting mankind in greater danger than it’s ever known before.");
 
-        Note that this only tests that the onChange function is called; it does not test that the
-        correct Uri is returned.
-     */
+        return testValues;
+    }
+
+    static long insertReviewRecord(Context context) {
+        // insert our test records into the database
+        MovieDbHelper dbHelper = new MovieDbHelper(context);
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        ContentValues testValues = TestUtilities.createReviewRecord();
+
+        long reviewRowId;
+        reviewRowId = db.insert(MovieContract.ReviewEntry.TABLE_NAME, null, testValues);
+        // Verify we got a row back.
+        assertTrue("Error: Failure to insert review record in reviews table", reviewRowId != -1);
+
+        return reviewRowId;
+    }
+
+    static ContentValues createTrailerRecord() {
+        // Create a new map of values, where column names are the keys
+        ContentValues testValues = new ContentValues();
+        testValues.put(MovieContract.TrailerEntry.COLUMN_MOVIE_ID, 209112);
+        testValues.put(MovieContract.TrailerEntry.COLUMN_TRAILER_NAME, "Official Trailer 1");
+        testValues.put(MovieContract.TrailerEntry.COLUMN_TRAILER_KEY, "ASDFGHJK");
+
+        return testValues;
+    }
+
+    static long insertTrailerRecord(Context context) {
+        // insert our test records into the database
+        MovieDbHelper dbHelper = new MovieDbHelper(context);
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        ContentValues testValues = TestUtilities.createTrailerRecord();
+
+        long trailerRowId;
+        trailerRowId = db.insert(MovieContract.TrailerEntry.TABLE_NAME, null, testValues);
+        // Verify we got a row back.
+        assertTrue("Error: Failure to insert trailer record in reviews table", trailerRowId != -1);
+
+        return trailerRowId;
+    }
+
     static class TestContentObserver extends ContentObserver {
         final HandlerThread mHT;
         boolean mContentChanged;

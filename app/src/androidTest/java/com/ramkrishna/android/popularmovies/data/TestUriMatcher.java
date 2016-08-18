@@ -28,9 +28,12 @@ import android.test.AndroidTestCase;
 public class TestUriMatcher extends AndroidTestCase {
 
     private static final long MOVIE_ID = 5;
-    // content://com.example.android.sunshine.app/weather"
-    private static final Uri TEST_WEATHER_DIR = MovieContract.MovieEntry.CONTENT_URI;
-    private static final Uri TEST_WEATHER_WITH_LOCATION_DIR = MovieContract.MovieEntry.buildMovieUri(MOVIE_ID);
+    private static final Uri TEST_MOVIES = MovieContract.MovieEntry.CONTENT_URI;
+    private static final Uri TEST_MOVIE_WITH_ID = MovieContract.MovieEntry.buildMovieUri(MOVIE_ID);
+    private static final Uri TEST_REVIEWS = MovieContract.ReviewEntry.CONTENT_URI;
+    private static final Uri TEST_REVIEWS_WITH_MOVIE_ID = MovieContract.ReviewEntry.buildReviewUri(MOVIE_ID);
+    private static final Uri TEST_TRAILERS = MovieContract.TrailerEntry.CONTENT_URI;
+    private static final Uri TEST_TRAILERS_WITH_MOVIE_ID = MovieContract.TrailerEntry.buildTrailerUri(MOVIE_ID);
 
     /*
         Students: This function tests that your UriMatcher returns the correct integer value
@@ -39,9 +42,17 @@ public class TestUriMatcher extends AndroidTestCase {
      */
     public void testUriMatcher() {
         UriMatcher testMatcher = MovieProvider.buildUriMatcher();
-        assertEquals("Error: The WEATHER URI was matched incorrectly.",
-                testMatcher.match(TEST_WEATHER_DIR), MovieProvider.MOVIES);
-        assertEquals("Error: The WEATHER WITH LOCATION URI was matched incorrectly.",
-                testMatcher.match(TEST_WEATHER_WITH_LOCATION_DIR), MovieProvider.MOVIE_WITH_ID);
+        assertEquals("Error: The MOVIES URI was matched incorrectly.",
+                testMatcher.match(TEST_MOVIES), MovieProvider.MOVIES);
+        assertEquals("Error: The MOVIE_WITH_ID URI was matched incorrectly.",
+                testMatcher.match(TEST_MOVIE_WITH_ID), MovieProvider.MOVIE_WITH_ID);
+        assertEquals("Error: The REVIEWS URI was matched incorrectly.",
+                testMatcher.match(TEST_REVIEWS), MovieProvider.REVIEWS);
+        assertEquals("Error: The REVIEWS_WITH_MOVIE_ID URI was matched incorrectly.",
+                testMatcher.match(TEST_REVIEWS_WITH_MOVIE_ID), MovieProvider.REVIEWS_WITH_MOVIE_ID);
+        assertEquals("Error: The TRAILERS URI was matched incorrectly.",
+                testMatcher.match(TEST_TRAILERS), MovieProvider.TRAILERS);
+        assertEquals("Error: The TRAILERS_WITH_MOVIE_ID URI was matched incorrectly.",
+                testMatcher.match(TEST_TRAILERS_WITH_MOVIE_ID), MovieProvider.TRAILERS_WITH_MOVIE_ID);
     }
 }

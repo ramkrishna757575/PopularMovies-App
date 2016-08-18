@@ -9,7 +9,7 @@
         android:id="@+id/movie_title_text_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#009688"
+        android:background="@color/colorTertiary"
         android:fontFamily="sans-serif-medium"
         android:padding="16dp"
         android:textAlignment="center"
@@ -100,9 +100,9 @@
                 android:id="@+id/movie_overview_text_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/poster_image_view"
+                android:layout_below="@id/mark_favourite_button"
                 android:paddingBottom="8dp"
-                android:paddingTop="8dp" />
+                android:paddingTop="32dp" />
 
         </RelativeLayout>
 

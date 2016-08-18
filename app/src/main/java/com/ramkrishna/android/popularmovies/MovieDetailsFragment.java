@@ -19,17 +19,22 @@ import com.ramkrishna.android.popularmovies.data.MovieContract;
 import com.ramkrishna.android.popularmovies.data.MovieProvider;
 import com.squareup.picasso.Picasso;
 
+import java.util.ArrayList;
+
 
 /**
  * A simple {@link Fragment} subclass.
- * <p>
+ * <p/>
  * Fragment showing the details of the movie
  */
-public class MovieDetailsFragment extends Fragment {
+public class MovieDetailsFragment extends Fragment implements GetReviewsFromApi.GetReviewsFromApiListener, GetTrailersFromApi.GetTrailersFromApiListener {
 
     private static final String MOVIE_TRAILER_FRAGMENT_TAG = "TRAILER_FRAGMENT";
     private static final String MOVIE_REVIEW_FRAGMENT_TAG = "REVIEW_FRAGMENT";
     MovieObject movieObject;
+
+    //variables to get the reviews(api has pagination implemented)
+    int currentPage = 1, maxPage = -1;
 
     public MovieDetailsFragment() {
         // Required empty public constructor
@@ -41,7 +46,8 @@ public class MovieDetailsFragment extends Fragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_movie_details, container, false);
         //Get the Extra Data from the intent
-        movieObject = getActivity().getIntent().getExtras().getParcelable(Constants.INTENT_MOVIE_OBJECT);
+        final Bundle dataBundle = this.getArguments();
+        movieObject = dataBundle.getParcelable(Constants.INTENT_MOVIE_OBJECT);
 
         //Load the poster image and display in ImageView
         ImageView backdropImageView = (ImageView) view.findViewById(R.id.poster_image_view);
@@ -50,8 +56,6 @@ public class MovieDetailsFragment extends Fragment {
                 .appendEncodedPath(movieObject.getPosterPath())
                 .build();
         Picasso.with(getContext()).load(posterUri)
-                .placeholder(R.drawable.ic_photo_black_24dp)
-                .error(R.drawable.ic_photo_black_24dp)
                 .into(backdropImageView);
 
         //Set the Title in the Title TextView
@@ -79,6 +83,7 @@ public class MovieDetailsFragment extends Fragment {
                 MovieTrailersFragment movieTrailersFragment = new MovieTrailersFragment();
                 Bundle args = new Bundle();
                 args.putInt(MovieTrailersFragment.BUNDLE_ARGUMENT_KEY, movieObject.getId());
+                args.putString(Constants.INTENT_FAVOURITE_MOVIE, dataBundle.getString(Constants.INTENT_FAVOURITE_MOVIE));
                 movieTrailersFragment.setArguments(args);
 
                 FragmentTransaction transaction = getFragmentManager().beginTransaction();
@@ -101,6 +106,7 @@ public class MovieDetailsFragment extends Fragment {
                 MovieReviewsFragment movieReviewsFragment = new MovieReviewsFragment();
                 Bundle args = new Bundle();
                 args.putInt(MovieReviewsFragment.BUNDLE_ARGUMENT_KEY, movieObject.getId());
+                args.putString(Constants.INTENT_FAVOURITE_MOVIE, dataBundle.getString(Constants.INTENT_FAVOURITE_MOVIE));
                 movieReviewsFragment.setArguments(args);
 
                 FragmentTransaction transaction = getFragmentManager().beginTransaction();
@@ -126,20 +132,38 @@ public class MovieDetailsFragment extends Fragment {
                 if (isFavouriteMovie()) {
                     addToFavouritesButton.setImageResource(R.drawable.ic_favorite_border_black_24dp);
                     String[] selectionArgs = new String[]{Integer.toString(movieObject.getId())};
+                    Uri movieUri = MovieContract.MovieEntry.CONTENT_URI.buildUpon().appendPath(Integer.toString(movieObject.getId())).build();
                     getContext().getContentResolver().delete(
-                            MovieContract.MovieEntry.CONTENT_URI,
+                            movieUri,
                             MovieProvider.sMovieDetailsSelection,
-                            selectionArgs);
+                            selectionArgs
+                    );
+                    Uri reviewsUri = MovieContract.ReviewEntry.CONTENT_URI.buildUpon().appendPath(Integer.toString(movieObject.getId())).build();
+                    getContext().getContentResolver().delete(
+                            reviewsUri,
+                            MovieProvider.sMovieReviewsSelection,
+                            selectionArgs
+                    );
+                    Uri trailerUri = MovieContract.TrailerEntry.CONTENT_URI.buildUpon().appendPath(Integer.toString(movieObject.getId())).build();
+                    getContext().getContentResolver().delete(
+                            trailerUri,
+                            MovieProvider.sMovieTrailersSelection,
+                            selectionArgs
+                    );
                 } else {
                     addToFavouritesButton.setImageResource(R.drawable.ic_favorite_black_24dp);
-                    getContext().getContentResolver().insert(MovieContract.MovieEntry.CONTENT_URI, createContentValues());
+                    getContext().getContentResolver().insert(MovieContract.MovieEntry.CONTENT_URI, createMovieRecord());
+                    GetReviewsFromApi getReviewsFromApi = new GetReviewsFromApi(getContext(), MovieDetailsFragment.this, movieObject.getId());
+                    getReviewsFromApi.execute();
+                    GetTrailersFromApi getTrailersFromApi = new GetTrailersFromApi(getContext(), MovieDetailsFragment.this, movieObject.getId());
+                    getTrailersFromApi.execute();
                 }
             }
         });
         return view;
     }
 
-    private ContentValues createContentValues() {
+    private ContentValues createMovieRecord() {
         ContentValues movieData = new ContentValues();
         movieData.put(MovieContract.MovieEntry.COLUMN_MOVIE_ID, movieObject.getId());
         movieData.put(MovieContract.MovieEntry.COLUMN_MOVIE_TITLE, movieObject.getTitle());
@@ -164,5 +188,59 @@ public class MovieDetailsFragment extends Fragment {
         boolean isFavourite = favMoviesCursor.moveToFirst();
         favMoviesCursor.close();
         return isFavourite;
+    }
+
+    /*Get the reviews for this movie to be added to the db*/
+    @Override
+    public void getReviews(ArrayList<String> author, ArrayList<String> content) {
+        if (author.size() > 0 && content.size() > 0 && author.size() == content.size()) {
+            ContentValues[] reviewsArray = new ContentValues[author.size()];
+            for (int i = 0; i < author.size(); i++) {
+                ContentValues reviewsData = new ContentValues();
+                reviewsData.put(MovieContract.ReviewEntry.COLUMN_MOVIE_ID, movieObject.getId());
+                reviewsData.put(MovieContract.ReviewEntry.COLUMN_AUTHOR, author.get(i));
+                reviewsData.put(MovieContract.ReviewEntry.COLUMN_CONTENT, content.get(i));
+                reviewsArray[i] = reviewsData;
+            }
+            Uri reviewsUri = MovieContract.ReviewEntry.CONTENT_URI.buildUpon().appendPath(Integer.toString(movieObject.getId())).build();
+            getContext().getContentResolver().bulkInsert(reviewsUri, reviewsArray);
+        }
+        currentPage++;
+        if (currentPage <= maxPage) {
+            GetReviewsFromApi getReviewsFromApi = new GetReviewsFromApi(getContext(), MovieDetailsFragment.this, movieObject.getId());
+            getReviewsFromApi.execute();
+        }
+    }
+
+    @Override
+    public void onMaxPageObtained(int maxPage) {
+        this.maxPage = maxPage;
+    }
+
+    @Override
+    public int currentPage() {
+        return currentPage;
+    }
+
+    @Override
+    public int maxPage() {
+        return maxPage;
+    }
+
+    /*Get the trailers for this movie and add it to the DB*/
+    @Override
+    public void getTrailers(ArrayList<String> movieTrailerKeys, ArrayList<String> movieTrailerNames) {
+        if (movieTrailerKeys.size() > 0 && movieTrailerNames.size() > 0 && movieTrailerKeys.size() == movieTrailerNames.size()) {
+            ContentValues[] trailersArray = new ContentValues[movieTrailerKeys.size()];
+            for (int i = 0; i < movieTrailerKeys.size(); i++) {
+                ContentValues trailerData = new ContentValues();
+                trailerData.put(MovieContract.TrailerEntry.COLUMN_MOVIE_ID, movieObject.getId());
+                trailerData.put(MovieContract.TrailerEntry.COLUMN_TRAILER_KEY, movieTrailerKeys.get(i));
+                trailerData.put(MovieContract.TrailerEntry.COLUMN_TRAILER_NAME, movieTrailerNames.get(i));
+                trailersArray[i] = trailerData;
+            }
+            Uri trailerUri = MovieContract.TrailerEntry.CONTENT_URI.buildUpon().appendPath(Integer.toString(movieObject.getId())).build();
+            getContext().getContentResolver().bulkInsert(trailerUri, trailersArray);
+        }
     }
 }

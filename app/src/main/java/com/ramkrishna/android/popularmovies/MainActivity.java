@@ -1,12 +1,14 @@
 package com.ramkrishna.android.popularmovies;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -16,10 +18,9 @@ import android.view.MenuItem;
 * */
 public class MainActivity extends AppCompatActivity {
 
-    SharedPreferences sharedPrefs;
-    SharedPreferences.OnSharedPreferenceChangeListener listener;
-    private static final String MOVIE_GRID_FRAGMENT_TAG = "MOVIE_GRID_FRAGMENT";
-    private static final String FAVOURITE_MOVIE_FRAGMENT_TAG = "FAVOURITE_MOVIE_FRAGMENT";
+    private boolean mTwoPane = false;
+    private static final String MOVIE_GRID_FRAGMENT = "MOVIE_GRID_FRAGMENT";
+    private static final String MOVIE_DETAILS_FRAGMENT = "MOVIE_DETAILS_FRAGMENT";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,20 +30,26 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         //Set the default preference value for the sort order of the movies
         PreferenceManager.setDefaultValues(this, R.xml.pref_general, false);
-        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
-
-        listener = new SharedPreferences.OnSharedPreferenceChangeListener() {
-            @Override
-            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-                setFragmentByPrefs();
+        if (findViewById(R.id.movie_details_fragment_container) != null) {
+            mTwoPane = true;
+            if (savedInstanceState == null) {
+                MovieGridFragment movieGridFragment = new MovieGridFragment();
+                Bundle args = new Bundle();
+                args.putString(Constants.INTENT_TWO_PANE_DETAIL_FRAGMENT, Constants.INTENT_TWO_PANE_DETAIL_FRAGMENT);
+                movieGridFragment.setArguments(args);
+                getSupportFragmentManager().beginTransaction()
+                        .add(R.id.movie_grid_fragment_container, movieGridFragment, MOVIE_GRID_FRAGMENT)
+                        .commit();
             }
-        };
-
-        //Register the listener for SharedPrefs change behaviour
-        sharedPrefs.registerOnSharedPreferenceChangeListener(listener);
-
-        if (savedInstanceState == null) {
-            setFragmentByPrefs();
+            LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter(Constants.INTENT_TWO_PANE_DETAIL_FRAGMENT));
+        } else {
+            mTwoPane = false;
+            if (savedInstanceState == null) {
+                MovieGridFragment movieGridFragment = new MovieGridFragment();
+                getSupportFragmentManager().beginTransaction()
+                        .add(R.id.main_fragment_container, movieGridFragment, MOVIE_GRID_FRAGMENT)
+                        .commit();
+            }
         }
     }
 
@@ -69,23 +76,30 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void setFragmentByPrefs() {
-        String setPrefs = sharedPrefs.getString(this.getString(R.string.pref_sort_order_key), this.getString(R.string.settings_order_by_default_val));
-        String favouritePref = getResources().getStringArray(R.array.order_by_values)[2];
-        if (setPrefs.equals(favouritePref)) {
-            //Add the FavouriteMovies fragment
-            Log.d("TODO", "Add the FavouriteMovies fragment");
-        } else {
-            //Add the MovieGrid fragment
-            // Create a new Fragment to be placed in the activity layout
-            MovieGridFragment movieGridFragment = new MovieGridFragment();
-            // In case this activity was started with special instructions from an
-            // Intent, pass the Intent's extras to the fragment as arguments
-            movieGridFragment.setArguments(getIntent().getExtras());
-            // Add the fragment to the 'fragment_container' FrameLayout
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.main_fragment_container, movieGridFragment, MOVIE_GRID_FRAGMENT_TAG)
-                    .commitAllowingStateLoss();
+    @Override
+    protected void onResume() {
+        if (mTwoPane) {
+            LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter(Constants.INTENT_TWO_PANE_DETAIL_FRAGMENT));
         }
+        super.onResume();
     }
+
+    @Override
+    protected void onPause() {
+        if (mTwoPane) {
+            LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
+        }
+        super.onPause();
+    }
+
+    private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            MovieDetailsFragment movieDetailsFragment = new MovieDetailsFragment();
+            movieDetailsFragment.setArguments(intent.getExtras());
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.movie_details_fragment_container, movieDetailsFragment, MOVIE_DETAILS_FRAGMENT)
+                    .commit();
+        }
+    };
 }

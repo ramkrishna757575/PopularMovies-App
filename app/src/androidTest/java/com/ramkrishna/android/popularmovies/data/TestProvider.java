@@ -24,29 +24,24 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.test.AndroidTestCase;
-import android.util.Log;
 
-/*
-    Note: This is not a complete set of tests of the Sunshine ContentProvider, but it does test
-    that at least the basic functionality has been implemented correctly.
-
-    Students: Uncomment the tests in this class as you implement the functionality in your
-    ContentProvider to make sure that you've implemented things reasonably correctly.
- */
 public class TestProvider extends AndroidTestCase {
 
     public static final String LOG_TAG = TestProvider.class.getSimpleName();
 
-    /*
-       This helper function deletes all records from both database tables using the ContentProvider.
-       It also queries the ContentProvider to make sure that the database has been successfully
-       deleted, so it cannot be used until the Query and Delete functions have been written
-       in the ContentProvider.
-
-       Students: Replace the calls to deleteAllRecordsFromDB with this one after you have written
-       the delete functionality in the ContentProvider.
-     */
     public void deleteAllRecordsFromProvider() {
+        mContext.getContentResolver().delete(
+                MovieContract.ReviewEntry.CONTENT_URI,
+                null,
+                null
+        );
+
+        mContext.getContentResolver().delete(
+                MovieContract.TrailerEntry.CONTENT_URI,
+                null,
+                null
+        );
+
         mContext.getContentResolver().delete(
                 MovieContract.MovieEntry.CONTENT_URI,
                 null,
@@ -60,14 +55,29 @@ public class TestProvider extends AndroidTestCase {
                 null,
                 null
         );
-        assertEquals("Error: Records not deleted from Weather table during delete", 0, cursor.getCount());
+        assertEquals("Error: Records not deleted from movies table during delete", 0, cursor.getCount());
+
+        cursor = mContext.getContentResolver().query(
+                MovieContract.ReviewEntry.CONTENT_URI,
+                null,
+                null,
+                null,
+                null
+        );
+        assertEquals("Error: Records not deleted from reviews table during delete", 0, cursor.getCount());
+
+        cursor = mContext.getContentResolver().query(
+                MovieContract.TrailerEntry.CONTENT_URI,
+                null,
+                null,
+                null,
+                null
+        );
+        assertEquals("Error: Records not deleted from trailers table during delete", 0, cursor.getCount());
+
         cursor.close();
     }
 
-    /*
-        Student: Refactor this function to use the deleteAllRecordsFromProvider functionality once
-        you have implemented delete functionality there.
-     */
     public void deleteAllRecords() {
         deleteAllRecordsFromProvider();
     }
@@ -80,15 +90,9 @@ public class TestProvider extends AndroidTestCase {
         deleteAllRecords();
     }
 
-    /*
-        This test checks to make sure that the content provider is registered correctly.
-        Students: Uncomment this test to make sure you've correctly registered the WeatherProvider.
-     */
     public void testProviderRegistry() {
         PackageManager pm = mContext.getPackageManager();
 
-        // We define the component name based on the package name from the context and the
-        // WeatherProvider class.
         ComponentName componentName = new ComponentName(mContext.getPackageName(),
                 MovieProvider.class.getName());
         try {
@@ -97,108 +101,147 @@ public class TestProvider extends AndroidTestCase {
             ProviderInfo providerInfo = pm.getProviderInfo(componentName, 0);
 
             // Make sure that the registered authority matches the authority from the Contract.
-            assertEquals("Error: WeatherProvider registered with authority: " + providerInfo.authority +
+            assertEquals("Error: MovieProvider registered with authority: " + providerInfo.authority +
                             " instead of authority: " + MovieContract.CONTENT_AUTHORITY,
                     providerInfo.authority, MovieContract.CONTENT_AUTHORITY);
         } catch (PackageManager.NameNotFoundException e) {
             // I guess the provider isn't registered correctly.
-            assertTrue("Error: WeatherProvider not registered at " + mContext.getPackageName(),
+            assertTrue("Error: MovieProvider not registered at " + mContext.getPackageName(),
                     false);
         }
     }
 
-    /*
-            This test doesn't touch the database.  It verifies that the ContentProvider returns
-            the correct type for each type of URI that it can handle.
-            Students: Uncomment this test to verify that your implementation of GetType is
-            functioning correctly.
-         */
     public void testGetType() {
-        // content://com.example.android.sunshine.app/weather/
-        String type = mContext.getContentResolver().getType(MovieContract.MovieEntry.CONTENT_URI);
-        // vnd.android.cursor.dir/com.example.android.sunshine.app/weather
-        assertEquals("Error: the WeatherEntry CONTENT_URI should return WeatherEntry.CONTENT_TYPE",
-                MovieContract.MovieEntry.CONTENT_TYPE, type);
+        String movieType = mContext.getContentResolver().getType(MovieContract.MovieEntry.CONTENT_URI);
+        assertEquals("Error: the MovieEntry CONTENT_URI should return MovieEntry.CONTENT_TYPE",
+                MovieContract.MovieEntry.CONTENT_TYPE, movieType);
 
-        long testLocation = 1;
-        // content://com.example.android.sunshine.app/weather/94074
-        type = mContext.getContentResolver().getType(
-                MovieContract.MovieEntry.buildMovieUri(testLocation));
-        // vnd.android.cursor.dir/com.example.android.sunshine.app/weather
-        assertEquals("Error: the WeatherEntry CONTENT_URI with location should return WeatherEntry.CONTENT_TYPE",
-                MovieContract.MovieEntry.CONTENT_ITEM_TYPE, type);
+        long testMovieWithID = 1;
+        movieType = mContext.getContentResolver().getType(
+                MovieContract.MovieEntry.buildMovieUri(testMovieWithID));
+        assertEquals("Error: the MovieEntry CONTENT_URI with location should return MovieEntry.CONTENT_TYPE",
+                MovieContract.MovieEntry.CONTENT_ITEM_TYPE, movieType);
+
+        String reviewType = mContext.getContentResolver().getType(MovieContract.ReviewEntry.CONTENT_URI);
+        assertEquals("Error: the ReviewEntry CONTENT_URI should return ReviewEntry.CONTENT_TYPE",
+                MovieContract.ReviewEntry.CONTENT_TYPE, reviewType);
+
+        long testReviewWithID = 1;
+        reviewType = mContext.getContentResolver().getType(
+                MovieContract.ReviewEntry.buildReviewUri(testReviewWithID));
+        assertEquals("Error: the ReviewEntry CONTENT_URI with location should return ReviewEntry.CONTENT_TYPE",
+                MovieContract.ReviewEntry.CONTENT_TYPE, reviewType);
+
+        String trailerType = mContext.getContentResolver().getType(MovieContract.TrailerEntry.CONTENT_URI);
+        assertEquals("Error: the TrailerEntry CONTENT_URI should return TrailerEntry.CONTENT_TYPE",
+                MovieContract.TrailerEntry.CONTENT_TYPE, trailerType);
+
+        long testTrailerWithID = 1;
+        trailerType = mContext.getContentResolver().getType(
+                MovieContract.TrailerEntry.buildTrailerUri(testTrailerWithID));
+        assertEquals("Error: the TrailerEntry CONTENT_URI with location should return TrailerEntry.CONTENT_TYPE",
+                MovieContract.TrailerEntry.CONTENT_TYPE, trailerType);
     }
 
-    /*
-        This test uses the database directly to insert and then uses the ContentProvider to
-        read out the data.  Uncomment this test to see if your location queries are
-        performing correctly.
-     */
-    public void testBasicLocationQueries() {
+    public void testBasicMovieQueries() {
         // insert our test records into the database
         deleteAllRecords();
         ContentValues testValues = TestUtilities.createMovieRecord();
         long itemId = TestUtilities.insertMovieRecord(mContext);
 
         // Test the basic content provider query
-        Cursor locationCursor = mContext.getContentResolver().query(
+        Cursor movieCursor = mContext.getContentResolver().query(
                 MovieContract.MovieEntry.CONTENT_URI,
                 null,
                 null,
                 null,
                 null
         );
-
-        /*Uri movieUri = MovieContract.MovieEntry.CONTENT_URI.buildUpon().appendPath("209112").build();
-        Cursor locationCursor = mContext.getContentResolver().query(
-                movieUri,
-                null,
-                null,
-                null,
-                null
-        );*/
         // Make sure we get the correct cursor out of the database
-        TestUtilities.validateCursor("testBasicLocationQueries, location query", locationCursor, testValues);
+        TestUtilities.validateCursor("testBasicMovieQueries, movie query", movieCursor, testValues);
 
         // Has the NotificationUri been set correctly? --- we can only test this easily against API
         // level 19 or greater because getNotificationUri was added in API level 19.
         if (Build.VERSION.SDK_INT >= 19) {
-            assertEquals("Error: Location Query did not properly set NotificationUri",
-                    locationCursor.getNotificationUri(), MovieContract.MovieEntry.CONTENT_URI);
-            /*assertEquals("Error: Location Query did not properly set NotificationUri",
-                    locationCursor.getNotificationUri(), movieUri);*/
+            assertEquals("Error: Movie Query did not properly set NotificationUri",
+                    movieCursor.getNotificationUri(), MovieContract.MovieEntry.CONTENT_URI);
         }
     }
 
-    /*
-        This test uses the provider to insert and then update the data. Uncomment this test to
-        see if your update location is functioning correctly.
-     */
-    public void testUpdateLocation() {
+    public void testBasicReviewQueries() {
+        // insert our test records into the database
+        deleteAllRecords();
+        ContentValues testValues = TestUtilities.createReviewRecord();
+        long itemId = TestUtilities.insertReviewRecord(mContext);
+
+        // Test the basic content provider query
+        Cursor reviewCursor = mContext.getContentResolver().query(
+                MovieContract.ReviewEntry.CONTENT_URI,
+                null,
+                null,
+                null,
+                null
+        );
+        // Make sure we get the correct cursor out of the database
+        TestUtilities.validateCursor("testBasicReviewQueries, review query", reviewCursor, testValues);
+
+        // Has the NotificationUri been set correctly? --- we can only test this easily against API
+        // level 19 or greater because getNotificationUri was added in API level 19.
+        if (Build.VERSION.SDK_INT >= 19) {
+            assertEquals("Error: Review Query did not properly set NotificationUri",
+                    reviewCursor.getNotificationUri(), MovieContract.ReviewEntry.CONTENT_URI);
+        }
+    }
+
+    public void testBasicTrailerQueries() {
+        // insert our test records into the database
+        deleteAllRecords();
+        ContentValues testValues = TestUtilities.createTrailerRecord();
+        long itemId = TestUtilities.insertTrailerRecord(mContext);
+
+        // Test the basic content provider query
+        Cursor trailerCursor = mContext.getContentResolver().query(
+                MovieContract.TrailerEntry.CONTENT_URI,
+                null,
+                null,
+                null,
+                null
+        );
+        // Make sure we get the correct cursor out of the database
+        TestUtilities.validateCursor("testBasicTrailerQueries, trailer query", trailerCursor, testValues);
+
+        // Has the NotificationUri been set correctly? --- we can only test this easily against API
+        // level 19 or greater because getNotificationUri was added in API level 19.
+        if (Build.VERSION.SDK_INT >= 19) {
+            assertEquals("Error: Trailer Query did not properly set NotificationUri",
+                    trailerCursor.getNotificationUri(), MovieContract.TrailerEntry.CONTENT_URI);
+        }
+    }
+
+    public void testUpdateMovie() {
         // Create a new map of values, where column names are the keys
         ContentValues values = TestUtilities.createMovieRecord();
 
-        Uri locationUri = mContext.getContentResolver().
+        Uri movieUri = mContext.getContentResolver().
                 insert(MovieContract.MovieEntry.CONTENT_URI, values);
-        long locationRowId = ContentUris.parseId(locationUri);
+        long movieRowId = ContentUris.parseId(movieUri);
 
         // Verify we got a row back.
-        assertTrue(locationRowId != -1);
+        assertTrue(movieRowId != -1);
 
-        ContentValues updatedValues = new ContentValues(values);
-        updatedValues.put(MovieContract.MovieEntry._ID, locationRowId);
+        ContentValues updatedValues = new ContentValues();
         updatedValues.put(MovieContract.MovieEntry.COLUMN_MOVIE_TITLE, "Santa's Village");
 
         // Create a cursor with observer to make sure that the content provider is notifying
         // the observers as expected
-        Cursor locationCursor = mContext.getContentResolver().query(MovieContract.MovieEntry.CONTENT_URI, null, null, null, null);
+        Cursor movieCursor = mContext.getContentResolver().query(MovieContract.MovieEntry.CONTENT_URI, null, null, null, null);
 
         TestUtilities.TestContentObserver tco = TestUtilities.getTestContentObserver();
-        locationCursor.registerContentObserver(tco);
+        movieCursor.registerContentObserver(tco);
 
         int count = mContext.getContentResolver().update(
                 MovieContract.MovieEntry.CONTENT_URI, updatedValues, MovieContract.MovieEntry._ID + "= ?",
-                new String[]{Long.toString(locationRowId)});
+                new String[]{Long.toString(movieRowId)});
         assertEquals(count, 1);
 
         // Test to make sure our observer is called.  If not, we throw an assertion.
@@ -207,47 +250,40 @@ public class TestProvider extends AndroidTestCase {
         // isn't calling getContext().getContentResolver().notifyChange(uri, null);
         tco.waitForNotificationOrFail();
 
-        locationCursor.unregisterContentObserver(tco);
-        locationCursor.close();
+        movieCursor.unregisterContentObserver(tco);
+        movieCursor.close();
 
         // A cursor is your primary interface to the query results.
         Cursor cursor = mContext.getContentResolver().query(
                 MovieContract.MovieEntry.CONTENT_URI,
                 null,   // projection
-                MovieContract.MovieEntry._ID + " = " + locationRowId,
+                MovieContract.MovieEntry._ID + " = " + movieRowId,
                 null,   // Values for the "where" clause
                 null    // sort order
         );
 
-        TestUtilities.validateCursor("testUpdateLocation.  Error validating location entry update.",
+        TestUtilities.validateCursor("testUpdateMovie.  Error validating movie entry update.",
                 cursor, updatedValues);
 
         cursor.close();
     }
 
 
-    // Make sure we can still delete after adding/updating stuff
-    //
-    // Student: Uncomment this test after you have completed writing the insert functionality
-    // in your provider.  It relies on insertions with testInsertReadProvider, so insert and
-    // query functionality must also be complete before this test can be used.
     public void testInsertReadProvider() {
         ContentValues testValues = TestUtilities.createMovieRecord();
 
         // Register a content observer for our insert.  This time, directly with the content resolver
         TestUtilities.TestContentObserver tco = TestUtilities.getTestContentObserver();
         mContext.getContentResolver().registerContentObserver(MovieContract.MovieEntry.CONTENT_URI, true, tco);
-        Uri locationUri = mContext.getContentResolver().insert(MovieContract.MovieEntry.CONTENT_URI, testValues);
+        Uri movieUri = mContext.getContentResolver().insert(MovieContract.MovieEntry.CONTENT_URI, testValues);
 
-        // Did our content observer get called?  Students:  If this fails, your insert location
-        // isn't calling getContext().getContentResolver().notifyChange(uri, null);
         tco.waitForNotificationOrFail();
         mContext.getContentResolver().unregisterContentObserver(tco);
 
-        long locationRowId = ContentUris.parseId(locationUri);
+        long movieRowId = ContentUris.parseId(movieUri);
 
         // Verify we got a row back.
-        assertTrue(locationRowId != -1);
+        assertTrue(movieRowId != -1);
 
         // Data's inserted.  IN THEORY.  Now pull some out to stare at it and verify it made
         // the round trip.
@@ -261,29 +297,23 @@ public class TestProvider extends AndroidTestCase {
                 null  // sort order
         );
 
-        TestUtilities.validateCursor("testInsertReadProvider. Error validating LocationEntry.",
+        TestUtilities.validateCursor("testInsertReadProvider. Error validating MovieEntry.",
                 cursor, testValues);
     }
 
-    // Make sure we can still delete after adding/updating stuff
-    //
-    // Student: Uncomment this test after you have completed writing the delete functionality
-    // in your provider.  It relies on insertions with testInsertReadProvider, so insert and
-    // query functionality must also be complete before this test can be used.
     public void testDeleteRecords() {
         testInsertReadProvider();
 
-        // Register a content observer for our location delete.
-        TestUtilities.TestContentObserver locationObserver = TestUtilities.getTestContentObserver();
-        mContext.getContentResolver().registerContentObserver(MovieContract.MovieEntry.CONTENT_URI, true, locationObserver);
+        TestUtilities.TestContentObserver movieObserver = TestUtilities.getTestContentObserver();
+        mContext.getContentResolver().registerContentObserver(MovieContract.MovieEntry.CONTENT_URI, true, movieObserver);
 
         deleteAllRecordsFromProvider();
 
         // Students: If either of these fail, you most-likely are not calling the
         // getContext().getContentResolver().notifyChange(uri, null); in the ContentProvider
         // delete.  (only if the insertReadProvider is succeeding)
-        locationObserver.waitForNotificationOrFail();
+        movieObserver.waitForNotificationOrFail();
 
-        mContext.getContentResolver().unregisterContentObserver(locationObserver);
+        mContext.getContentResolver().unregisterContentObserver(movieObserver);
     }
 }

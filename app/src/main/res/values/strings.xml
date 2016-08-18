@@ -23,5 +23,6 @@
     <string name="moreReviewsButtonText">more reviews</string>
 
     <string name="content_authority">com.ramkrishna.android.popularmovies</string>
+    <string name="empty_message">Nothing to show</string>
 
 </resources>

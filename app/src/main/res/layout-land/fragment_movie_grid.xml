@@ -15,4 +15,5 @@
         android:verticalSpacing="8dp"
         android:scrollbars="none"/>
 
+    <include layout="@layout/empty_view"/>
 </FrameLayout>

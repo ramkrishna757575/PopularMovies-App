@@ -11,7 +11,7 @@ import java.util.ArrayList;
 /**
  * Created by ramkr on 18-Jul-16.
  */
-public class GetReviewsFromApi extends AsyncTask{
+public class GetReviewsFromApi extends AsyncTask {
 
     Context mContext;
     private GetReviewsFromApiListener delegate;
@@ -21,7 +21,7 @@ public class GetReviewsFromApi extends AsyncTask{
     ArrayList<String> reviewAuthors;
     ArrayList<String> reviewContents;
 
-    GetReviewsFromApi(Context context, GetReviewsFromApiListener listener, int movieId){
+    GetReviewsFromApi(Context context, GetReviewsFromApiListener listener, int movieId) {
         mContext = context;
         delegate = listener;
         Uri trailerListUri = Uri.parse(Constants.URI_BASE_MOVIE_API_URI).buildUpon()
@@ -53,8 +53,7 @@ public class GetReviewsFromApi extends AsyncTask{
             movieTrailerObjects = movieJsonParser.parseReviewJson(rawJSON);
             createAuthorsAndContents();
             //parse the max page count and set it
-            if(delegate.maxPage() == -1)
-            {
+            if (delegate.maxPage() == -1) {
                 int maxPages = movieJsonParser.getPageLimit(rawJSON);
                 delegate.onMaxPageObtained(maxPages);
             }
@@ -72,8 +71,11 @@ public class GetReviewsFromApi extends AsyncTask{
 
     public interface GetReviewsFromApiListener {
         void getReviews(ArrayList<String> author, ArrayList<String> content);
+
         void onMaxPageObtained(int maxPage);
+
         int currentPage();
+
         int maxPage();
     }
 

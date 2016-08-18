@@ -14,11 +14,4 @@
     tools:context="com.ramkrishna.android.popularmovies.MainActivity"
     tools:showIn="@layout/activity_main">
 
-    <!--<fragment
-        class="com.ramkrishna.android.popularmovies.MovieGridFragment"
-        android:id="@+id/movie_grid_fragment"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        tools:layout="@layout/fragment_movie_grid"/>-->
-
 </FrameLayout>

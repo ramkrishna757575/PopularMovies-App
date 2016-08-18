@@ -45,6 +45,8 @@ public class TestDb extends AndroidTestCase {
         // Android metadata (db version information)
         final HashSet<String> tableNameHashSet = new HashSet<String>();
         tableNameHashSet.add(MovieContract.MovieEntry.TABLE_NAME);
+        tableNameHashSet.add(MovieContract.ReviewEntry.TABLE_NAME);
+        tableNameHashSet.add(MovieContract.TrailerEntry.TABLE_NAME);
 
         mContext.deleteDatabase(MovieDbHelper.DATABASE_NAME);
         SQLiteDatabase db = new MovieDbHelper(
@@ -89,14 +91,62 @@ public class TestDb extends AndroidTestCase {
             movieColumnHashSet.remove(columnName);
         } while (c.moveToNext());
 
-        assertTrue("Error: The database doesn't contain all of the required location entry columns",
+        assertTrue("Error: The database doesn't contain all of the required movie entry columns",
                 movieColumnHashSet.isEmpty());
+
+        c = db.rawQuery("PRAGMA table_info(" + MovieContract.ReviewEntry.TABLE_NAME + ")",
+                null);
+
+        assertTrue("Error: This means that we were unable to query the database for table information.",
+                c.moveToFirst());
+
+        final HashSet<String> reviewColumnHashSet = new HashSet<String>();
+
+        reviewColumnHashSet.add(MovieContract.ReviewEntry._ID);
+        reviewColumnHashSet.add(MovieContract.ReviewEntry.COLUMN_MOVIE_ID);
+        reviewColumnHashSet.add(MovieContract.ReviewEntry.COLUMN_AUTHOR);
+        reviewColumnHashSet.add(MovieContract.ReviewEntry.COLUMN_CONTENT);
+
+        columnNameIndex = c.getColumnIndex("name");
+        do {
+            String columnName = c.getString(columnNameIndex);
+            reviewColumnHashSet.remove(columnName);
+        } while (c.moveToNext());
+
+        assertTrue("Error: The database doesn't contain all of the required review entry columns",
+                reviewColumnHashSet.isEmpty());
+
+        c = db.rawQuery("PRAGMA table_info(" + MovieContract.TrailerEntry.TABLE_NAME + ")",
+                null);
+
+        assertTrue("Error: This means that we were unable to query the database for table information.",
+                c.moveToFirst());
+
+        final HashSet<String> trailerColumnHashSet = new HashSet<String>();
+
+        trailerColumnHashSet.add(MovieContract.TrailerEntry._ID);
+        trailerColumnHashSet.add(MovieContract.TrailerEntry.COLUMN_MOVIE_ID);
+        trailerColumnHashSet.add(MovieContract.TrailerEntry.COLUMN_TRAILER_KEY);
+        trailerColumnHashSet.add(MovieContract.TrailerEntry.COLUMN_TRAILER_NAME);
+
+        columnNameIndex = c.getColumnIndex("name");
+        do {
+            String columnName = c.getString(columnNameIndex);
+            trailerColumnHashSet.remove(columnName);
+        } while (c.moveToNext());
+
+        assertTrue("Error: The database doesn't contain all of the required trailer entry columns",
+                trailerColumnHashSet.isEmpty());
         db.close();
     }
 
     public void testMoviesTable() {
         insertMovie();
     }
+
+    public void testReviewsTable() { insertReview(); }
+
+    public void testTrailersTable() { insertTrailer(); }
 
     public long insertMovie() {
         // First step: Get reference to writable database
@@ -133,21 +183,127 @@ public class TestDb extends AndroidTestCase {
 
         // Move the cursor to a valid database row and check to see if we got any records back
         // from the query
-        assertTrue("Error: No Records returned from location query", cursor.moveToFirst());
+        assertTrue("Error: No Records returned from movie query", cursor.moveToFirst());
 
         // Fifth Step: Validate data in resulting Cursor with the original ContentValues
         // (you can use the validateCurrentRecord function in TestUtilities to validate the
         // query if you like)
-        TestUtilities.validateCurrentRecord("Error: Location Query Validation Failed",
+        TestUtilities.validateCurrentRecord("Error: Movie Query Validation Failed",
                 cursor, testValues);
 
         // Move the cursor to demonstrate that there is only one record in the database
-        assertFalse("Error: More than one record returned from location query",
+        assertFalse("Error: More than one record returned from movie query",
                 cursor.moveToNext());
 
         // Sixth Step: Close Cursor and Database
         cursor.close();
         db.close();
         return movieRowId;
+    }
+
+    public long insertReview() {
+        // First step: Get reference to writable database
+        // If there's an error in those massive SQL table creation Strings,
+        // errors will be thrown here when you try to get a writable database.
+        MovieDbHelper dbHelper = new MovieDbHelper(mContext);
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        // Second Step: Create ContentValues of what you want to insert
+        // (you can use the createMovieRecord if you wish)
+        ContentValues testValues = TestUtilities.createReviewRecord();
+
+        // Third Step: Insert ContentValues into database and get a row ID back
+        long reviewRowId;
+        reviewRowId = db.insert(MovieContract.ReviewEntry.TABLE_NAME, null, testValues);
+
+        // Verify we got a row back.
+        assertTrue(reviewRowId != -1);
+
+        // Data's inserted.  IN THEORY.  Now pull some out to stare at it and verify it made
+        // the round trip.
+
+        // Fourth Step: Query the database and receive a Cursor back
+        // A cursor is your primary interface to the query results.
+        Cursor cursor = db.query(
+                MovieContract.ReviewEntry.TABLE_NAME,  // Table to Query
+                null, // all columns
+                null, // Columns for the "where" clause
+                null, // Values for the "where" clause
+                null, // columns to group by
+                null, // columns to filter by row groups
+                null // sort order
+        );
+
+        // Move the cursor to a valid database row and check to see if we got any records back
+        // from the query
+        assertTrue("Error: No Records returned from review query", cursor.moveToFirst());
+
+        // Fifth Step: Validate data in resulting Cursor with the original ContentValues
+        // (you can use the validateCurrentRecord function in TestUtilities to validate the
+        // query if you like)
+        TestUtilities.validateCurrentRecord("Error: Review Query Validation Failed",
+                cursor, testValues);
+
+        // Move the cursor to demonstrate that there is only one record in the database
+        assertFalse("Error: More than one record returned from review query",
+                cursor.moveToNext());
+
+        // Sixth Step: Close Cursor and Database
+        cursor.close();
+        db.close();
+        return reviewRowId;
+    }
+
+    public long insertTrailer() {
+        // First step: Get reference to writable database
+        // If there's an error in those massive SQL table creation Strings,
+        // errors will be thrown here when you try to get a writable database.
+        MovieDbHelper dbHelper = new MovieDbHelper(mContext);
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        // Second Step: Create ContentValues of what you want to insert
+        // (you can use the createMovieRecord if you wish)
+        ContentValues testValues = TestUtilities.createTrailerRecord();
+
+        // Third Step: Insert ContentValues into database and get a row ID back
+        long trailerRowId;
+        trailerRowId = db.insert(MovieContract.TrailerEntry.TABLE_NAME, null, testValues);
+
+        // Verify we got a row back.
+        assertTrue(trailerRowId != -1);
+
+        // Data's inserted.  IN THEORY.  Now pull some out to stare at it and verify it made
+        // the round trip.
+
+        // Fourth Step: Query the database and receive a Cursor back
+        // A cursor is your primary interface to the query results.
+        Cursor cursor = db.query(
+                MovieContract.TrailerEntry.TABLE_NAME,  // Table to Query
+                null, // all columns
+                null, // Columns for the "where" clause
+                null, // Values for the "where" clause
+                null, // columns to group by
+                null, // columns to filter by row groups
+                null // sort order
+        );
+
+        // Move the cursor to a valid database row and check to see if we got any records back
+        // from the query
+        assertTrue("Error: No Records returned from trailer query", cursor.moveToFirst());
+
+        // Fifth Step: Validate data in resulting Cursor with the original ContentValues
+        // (you can use the validateCurrentRecord function in TestUtilities to validate the
+        // query if you like)
+        TestUtilities.validateCurrentRecord("Error: Trailer Query Validation Failed",
+                cursor, testValues);
+
+        // Move the cursor to demonstrate that there is only one record in the database
+        assertFalse("Error: More than one record returned from trailer query",
+                cursor.moveToNext());
+
+        // Sixth Step: Close Cursor and Database
+        cursor.close();
+        db.close();
+        return trailerRowId;
     }
 }

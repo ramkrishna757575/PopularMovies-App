@@ -21,6 +21,8 @@ public class Constants {
     public static final String JSON_PARSER_TAG_PAGE_LIMIT = "total_pages";
 
     public static final String INTENT_MOVIE_OBJECT = "MovieObject";
+    public static final String INTENT_FAVOURITE_MOVIE = "FavouriteMovie";
+    public static final String INTENT_TWO_PANE_DETAIL_FRAGMENT = "TwoPaneDetailFragment";
 
     public static final String URI_BASE_MOVIE_API_URI = "http://api.themoviedb.org/3/movie/";
     public static final String URI_PARAM_API_KEY = "api_key";
