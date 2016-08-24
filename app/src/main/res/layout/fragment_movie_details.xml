@@ -1,24 +1,26 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              xmlns:tools="http://schemas.android.com/tools"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent"
-              android:orientation="vertical"
-              tools:context="com.ramkrishna.android.popularmovies.MovieDetailsFragment">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.ramkrishna.android.popularmovies.MovieDetailsFragment">
 
     <TextView
         android:id="@+id/movie_title_text_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#009688"
+        android:background="@color/colorTertiary"
         android:fontFamily="sans-serif-medium"
-        android:padding="64dp"
+        android:padding="16dp"
+        android:textAlignment="center"
         android:textColor="@android:color/white"
-        android:textSize="34sp"/>
+        android:textSize="24sp" />
 
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_margin="16dp">
+        android:layout_height="0dp"
+        android:layout_margin="16dp"
+        android:layout_weight="0.7">
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -31,8 +33,8 @@
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentStart="true"
                 android:adjustViewBounds="true"
-                android:scaleType="center"
-                android:src="@drawable/ic_photo_black_24dp"/>
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_photo_black_24dp" />
 
             <TextView
                 android:id="@+id/release_date_text_view"
@@ -41,7 +43,7 @@
                 android:layout_marginLeft="32dp"
                 android:layout_marginTop="8dp"
                 android:layout_toRightOf="@id/poster_image_view"
-                android:textSize="24sp"/>
+                android:textSize="24sp" />
 
             <ImageView
                 android:id="@+id/star_image_view"
@@ -52,7 +54,7 @@
                 android:layout_marginTop="8dp"
                 android:layout_toRightOf="@id/poster_image_view"
                 android:src="@drawable/ic_grade_black_24dp"
-                android:tint="@android:color/holo_orange_light"/>
+                android:tint="@android:color/holo_orange_light" />
 
             <TextView
                 android:id="@+id/rating_text_view"
@@ -62,15 +64,45 @@
                 android:layout_marginLeft="8dp"
                 android:layout_marginTop="8dp"
                 android:layout_toRightOf="@id/star_image_view"
-                android:textSize="24sp"/>
+                android:textSize="24sp" />
+
+            <Button
+                android:id="@+id/view_review_button"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_below="@id/rating_text_view"
+                android:layout_marginLeft="32dp"
+                android:layout_marginTop="8dp"
+                android:layout_toRightOf="@id/poster_image_view"
+                android:fontFamily="sans-serif-medium"
+                android:text="@string/reviewsButtonText" />
+
+            <Button
+                android:id="@+id/view_trailers_button"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_below="@id/view_review_button"
+                android:layout_marginLeft="32dp"
+                android:layout_toRightOf="@id/poster_image_view"
+                android:fontFamily="sans-serif-medium"
+                android:text="@string/trailersButtonText" />
+
+            <ImageButton
+                android:id="@+id/mark_favourite_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignLeft="@id/view_trailers_button"
+                android:layout_below="@id/view_trailers_button"
+                android:backgroundTint="@color/colorTransparent"
+                android:src="@drawable/ic_favorite_border_black_24dp" />
 
             <TextView
                 android:id="@+id/movie_overview_text_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/poster_image_view"
+                android:layout_below="@id/mark_favourite_button"
                 android:paddingBottom="8dp"
-                android:paddingTop="8dp"/>
+                android:paddingTop="32dp" />
 
         </RelativeLayout>
 

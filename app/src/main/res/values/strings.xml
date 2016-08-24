@@ -11,8 +11,18 @@
     <string-array name="order_by_values">
         <item>Popularity</item>
         <item>Ratings</item>
+        <item>Favourites</item>
     </string-array>
 
     <string name="title_activity_movie_details">Movie Details</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="reviewsButtonText">reviews</string>
+    <string name="trailersButtonText">trailers</string>
+    <string name="moreReviewsButtonText">more reviews</string>
+
+    <string name="content_authority">com.ramkrishna.android.popularmovies</string>
+    <string name="empty_message">Nothing to show</string>
 
 </resources>
